@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carte Interactive - Bâtiments à Rénover</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f5f5f5;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        #map {
+            flex: 1;
+            height: 100%;
+        }
+
+        .controls-panel {
+            width: 350px;
+            background: white;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+        }
+
+        .control-section h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .control-item {
+            margin-bottom: 20px;
+        }
+
+        .control-item label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .value-display {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e0e0e0;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #764ba2;
+            transform: scale(1.1);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #f0f0f0;
+        }
+
+        .legend {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .legend h4 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 2px solid #fff;
+            box-shadow: 0 0 4px rgba(0,0,0,0.3);
+        }
+
+        .stats {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .stats-label {
+            color: #666;
+        }
+
+        .stats-value {
+            color: #333;
+            font-weight: bold;
+        }
+
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+        }
+
+        .popup-content {
+            padding: 5px;
+        }
+
+        .popup-content h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .popup-content p {
+            margin: 5px 0;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .popup-content strong {
+            color: #333;
+        }
+
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .priority-high {
+            background: #ff4757;
+            color: white;
+        }
+
+        .priority-medium {
+            background: #ffa502;
+            color: white;
+        }
+
+        .priority-low {
+            background: #2ed573;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .controls-panel {
+                width: 100%;
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🏗️ Carte Interactive - Bâtiments à Rénover</h1>
+        <p class="subtitle">Ajustez les facteurs d'importance pour identifier les bâtiments prioritaires</p>
+    </header>
+
+    <div class="container">
+        <div id="map"></div>
+        
+        <div class="controls-panel">
+            <div class="control-section">
+                <h3>⚖️ Facteurs d'Importance</h3>
+                
+                <div class="control-item">
+                    <label>
+                        <span>Indice Structurel</span>
+                        <span class="value-display" id="w-structurel-val">1.0</span>
+                    </label>
+                    <input type="range" id="w-structurel" min="0" max="2" step="0.1" value="1.0">
+                </div>
+
+                <div class="control-item">
+                    <label>
+                        <span>Indice Thermique</span>
+                        <span class="value-display" id="w-thermique-val">1.0</span>
+                    </label>
+                    <input type="range" id="w-thermique" min="0" max="2" step="0.1" value="1.0">
+                </div>
+
+                <div class="control-item">
+                    <label>
+                        <span>Indice Hydrique</span>
+                        <span class="value-display" id="w-hydrique-val">1.0</span>
+                    </label>
+                    <input type="range" id="w-hydrique" min="0" max="2" step="0.1" value="1.0">
+                </div>
+
+                <div class="control-item">
+                    <label>
+                        <span>Indice Végétation</span>
+                        <span class="value-display" id="w-vegetation-val">1.0</span>
+                    </label>
+                    <input type="range" id="w-vegetation" min="0" max="2" step="0.1" value="1.0">
+                </div>
+
+                <div class="control-item">
+                    <label>
+                        <span>Indice Social</span>
+                        <span class="value-display" id="w-social-val">1.0</span>
+                    </label>
+                    <input type="range" id="w-social" min="0" max="2" step="0.1" value="1.0">
+                </div>
+
+                <div class="control-item">
+                    <label>
+                        <span>Indice Renouvelable</span>
+                        <span class="value-display" id="w-renouvelable-val">1.0</span>
+                    </label>
+                    <input type="range" id="w-renouvelable" min="0" max="2" step="0.1" value="1.0">
+                </div>
+
+                <button class="btn btn-primary" onclick="recalculateResilience()">🔄 Recalculer les Indices</button>
+                <button class="btn btn-secondary" onclick="resetWeights()">↺ Réinitialiser</button>
+            </div>
+
+            <div class="control-section">
+                <div class="legend">
+                    <h4>Légende - Priorité de Rénovation</h4>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ff4757;"></div>
+                        <span>Priorité Haute (indice &lt; 0.4)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ffa502;"></div>
+                        <span>Priorité Moyenne (0.4 - 0.6)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #2ed573;"></div>
+                        <span>Priorité Faible (&gt; 0.6)</span>
+                    </div>
+                </div>
+
+                <div class="stats">
+                    <h4 style="margin-bottom: 10px; font-size: 14px;">📊 Statistiques</h4>
+                    <div class="stats-item">
+                        <span class="stats-label">Total de bâtiments:</span>
+                        <span class="stats-value" id="total-buildings">0</span>
+                    </div>
+                    <div class="stats-item">
+                        <span class="stats-label">Priorité haute:</span>
+                        <span class="stats-value" id="high-priority">0</span>
+                    </div>
+                    <div class="stats-item">
+                        <span class="stats-label">Priorité moyenne:</span>
+                        <span class="stats-value" id="medium-priority">0</span>
+                    </div>
+                    <div class="stats-item">
+                        <span class="stats-label">Priorité faible:</span>
+                        <span class="stats-value" id="low-priority">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        let map;
+        let markers = [];
+        let geojsonData;
+        let weights = {
+            structurel: 1.0,
+            thermique: 1.0,
+            hydrique: 1.0,
+            vegetation: 1.0,
+            social: 1.0,
+            renouvelable: 1.0
+        };
+
+        // Initialiser la carte
+        function initMap() {
+            // Centrer sur Montréal
+            map = L.map('map').setView([45.5, -73.6], 11);
+
+            // Ajouter le fond de carte
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Charger les données GeoJSON
+            loadGeoJSON();
+        }
+
+        // Charger le fichier GeoJSON
+        async function loadGeoJSON() {
+            try {
+                const response = await fetch('outputs/indice_resilience.geojson');
+                geojsonData = await response.json();
+                displayBuildings();
+                updateStats();
+            } catch (error) {
+                console.error('Erreur lors du chargement du GeoJSON:', error);
+                alert('Erreur lors du chargement des données. Vérifiez que le fichier existe.');
+            }
+        }
+
+        // Calculer la couleur selon l'indice de résilience
+        function getColor(resilience) {
+            // Inverser la logique: un indice faible = priorité haute (rouge)
+            if (resilience < 0.4) return '#ff4757'; // Rouge - Haute priorité
+            if (resilience < 0.6) return '#ffa502'; // Orange - Priorité moyenne
+            return '#2ed573'; // Vert - Faible priorité
+        }
+
+        // Obtenir le niveau de priorité
+        function getPriorityLevel(resilience) {
+            if (resilience < 0.4) return { level: 'Haute', class: 'priority-high' };
+            if (resilience < 0.6) return { level: 'Moyenne', class: 'priority-medium' };
+            return { level: 'Faible', class: 'priority-low' };
+        }
+
+        // Recalculer l'indice de résilience avec les nouveaux poids
+        function calculateCustomResilience(props) {
+            const indices = {
+                structurel: props.indice_structurel || 0,
+                thermique: props.indice_thermique || 0,
+                hydrique: props.indice_hydrique || 0,
+                vegetation: props.indice_vegetation || 0,
+                social: props.indice_social_norm || 0,
+                renouvelable: props.indice_renouvelable || 0
+            };
+
+            // Calculer la moyenne pondérée
+            let sum = 0;
+            let totalWeights = 0;
+            
+            for (let key in indices) {
+                sum += indices[key] * weights[key];
+                totalWeights += weights[key];
+            }
+
+            return totalWeights > 0 ? sum / totalWeights : 0;
+        }
+
+        // Afficher les bâtiments sur la carte
+        function displayBuildings() {
+            // Supprimer les anciens marqueurs
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+
+            geojsonData.features.forEach(feature => {
+                const props = feature.properties;
+                
+                // Utiliser les coordonnées latitude/longitude du fichier
+                const lat = props.latitude;
+                const lon = props.longitude;
+
+                // Recalculer l'indice avec les poids personnalisés
+                const customResilience = calculateCustomResilience(props);
+                const color = getColor(customResilience);
+                const priority = getPriorityLevel(customResilience);
+
+                // Créer un marqueur circulaire
+                const marker = L.circleMarker([lat, lon], {
+                    radius: 8,
+                    fillColor: color,
+                    color: '#fff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                });
+
+                // Créer le contenu du popup
+                const popupContent = `
+                    <div class="popup-content">
+                        <h4>🏢 ${props.Adresse}</h4>
+                        <p><strong>Année:</strong> ${props.Annee_construction || 'N/A'}</p>
+                        <p><strong>Superficie:</strong> ${Math.round(props.Superficie)} m²</p>
+                        <p><strong>GES:</strong> ${props.GES?.toFixed(2)} kg CO₂</p>
+                        <p><strong>Consommation totale:</strong> ${props.Conso_totale_GJ?.toFixed(2)} GJ</p>
+                        <hr style="margin: 10px 0; border: none; border-top: 1px solid #e0e0e0;">
+                        <p><strong>Indice de résilience:</strong> ${customResilience.toFixed(3)}</p>
+                        <p><strong>Indice structurel:</strong> ${props.indice_structurel?.toFixed(3)}</p>
+                        <p><strong>Indice thermique:</strong> ${props.indice_thermique?.toFixed(3)}</p>
+                        <p><strong>Indice hydrique:</strong> ${props.indice_hydrique?.toFixed(3)}</p>
+                        <p><strong>Indice végétation:</strong> ${props.indice_vegetation?.toFixed(3)}</p>
+                        <p><strong>Indice social:</strong> ${props.indice_social_norm?.toFixed(3)}</p>
+                        <p><strong>Indice renouvelable:</strong> ${props.indice_renouvelable?.toFixed(3)}</p>
+                        <span class="priority-badge ${priority.class}">Priorité ${priority.level}</span>
+                    </div>
+                `;
+
+                marker.bindPopup(popupContent);
+                marker.addTo(map);
+                markers.push(marker);
+            });
+        }
+
+        // Mettre à jour les statistiques
+        function updateStats() {
+            let highCount = 0;
+            let mediumCount = 0;
+            let lowCount = 0;
+
+            geojsonData.features.forEach(feature => {
+                const resilience = calculateCustomResilience(feature.properties);
+                if (resilience < 0.4) highCount++;
+                else if (resilience < 0.6) mediumCount++;
+                else lowCount++;
+            });
+
+            document.getElementById('total-buildings').textContent = geojsonData.features.length;
+            document.getElementById('high-priority').textContent = highCount;
+            document.getElementById('medium-priority').textContent = mediumCount;
+            document.getElementById('low-priority').textContent = lowCount;
+        }
+
+        // Recalculer avec les nouveaux poids
+        function recalculateResilience() {
+            displayBuildings();
+            updateStats();
+        }
+
+        // Réinitialiser les poids
+        function resetWeights() {
+            weights = {
+                structurel: 1.0,
+                thermique: 1.0,
+                hydrique: 1.0,
+                vegetation: 1.0,
+                social: 1.0,
+                renouvelable: 1.0
+            };
+
+            document.querySelectorAll('input[type="range"]').forEach(input => {
+                input.value = 1.0;
+                const id = input.id.replace('w-', '') + '-val';
+                document.getElementById(id).textContent = '1.0';
+            });
+
+            recalculateResilience();
+        }
+
+        // Initialiser les contrôles
+        function initControls() {
+            const controls = ['structurel', 'thermique', 'hydrique', 'vegetation', 'social', 'renouvelable'];
+            
+            controls.forEach(control => {
+                const input = document.getElementById(`w-${control}`);
+                const display = document.getElementById(`w-${control}-val`);
+                
+                input.addEventListener('input', (e) => {
+                    const value = parseFloat(e.target.value);
+                    weights[control] = value;
+                    display.textContent = value.toFixed(1);
+                });
+            });
+        }
+
+        // Démarrage de l'application
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            initControls();
+        });
+    </script>
+</body>
+</html>
