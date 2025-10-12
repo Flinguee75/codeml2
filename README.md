@@ -25,15 +25,26 @@ git clone <votre-repo-url>
 cd ml_competition
 ```
 
-### 2. Créer un environnement virtuel (recommandé)
+### 2. Créer un environnement (recommandé)
+
+#### Option A : Avec Conda (recommandé)
+Recréer l'environnement complet avec toutes les dépendances :
+```bash
+conda env create -f environment.yml
+conda activate mlcomp
+```
+
+#### Option B : Avec pip/venv
 ```bash
 python3 -m venv venv
 source venv/bin/activate  # Sur Windows: venv\Scripts\activate
+pip install -r requirements.txt
 ```
 
-### 3. Installer les dépendances
+### 3. Vérifier l'installation
 ```bash
-pip install -r requirements.txt
+jupyter notebook --version
+python -c "import geopandas; print('Environnement prêt!')"
 ```
 
 ### 4. Générer les données (si nécessaire)
