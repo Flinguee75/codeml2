@@ -3,7 +3,7 @@
 
 ## 📋 Description
 
-Ce projet aide la **Ville de Montréal** à identifier les bâtiments à **prioriser pour la rénovation énergétique**, en tenant compte à la fois de leur **vulnérabilité climatique** et de leur **dépendance énergétique**.
+Ce projet s’inscrit dans le cadre du Défi CodeML – IRIU × VILLE_IA, qui vise à aider la Ville de Montréal à cibler les bâtiments à prioriser pour la rénovation énergétique, en intégrant à la fois leur vulnérabilité climatique (pluies diluviennes, inondations, îlots de chaleur) et leur dépendance énergétique (consommation et émissions de GES).
 
 ### Objectifs
 - Fusionner des données **climatiques**, **énergétiques** et **sociales**
@@ -245,6 +245,5 @@ cat notebooks/classement_final_batiments.csv
 - **Dashboard BI** : tableau de bord Power BI ou Tableau pour la Ville
 
 ## 👤 Auteur
-
-**Tidiane Cissé**  
-Projet réalisé dans le cadre du défi *Bâtiments, énergie et résilience face aux pluies diluviennes*
+**Tidiane Cissé, Sarah Tabti, Yasmine Tamdrari**  
+Projet réalisé dans le cadre du défi Bâtiments, énergie et résilience face aux pluies diluviennes – Défi CodeML – IRIU × VILLE_IA
